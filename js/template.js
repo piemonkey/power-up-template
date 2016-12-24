@@ -19,52 +19,127 @@ var parkMap = {
   zion: 'Zion National Park'
 };
 
+var cardNames = []
+var parentCards = {}
+
+var parentLabelRegex = /^#?\d+$/
+
+var storedCard
+var storedName = 'start'
+
 var getBadges = function(t){
-  return t.card('name')
-  .get('name')
-  .then(function(cardName){
-    var badgeColor;
-    var icon = GRAY_ICON;
-    var lowercaseName = cardName.toLowerCase();
-    if(lowercaseName.indexOf('green') > -1){
-      badgeColor = 'green';
-      icon = WHITE_ICON;
-    } else if(lowercaseName.indexOf('yellow') > -1){
-      badgeColor = 'yellow';
-      icon = WHITE_ICON;
-    } else if(lowercaseName.indexOf('red') > -1){
-      badgeColor = 'red';
-      icon = WHITE_ICON;
-    }
+  var card = t
+  card.card('name').get('name')
+    .then(name => {
+      if (name === 'test' && !storedCard) {
+        storedCard = card
+        console.log('Set stored card')
+      }
+    })
 
-    if(lowercaseName.indexOf('dynamic') > -1){
-      // dynamic badges can have their function rerun after a set number
-      // of seconds defined by refresh. Minimum of 10 seconds.
-      return [{
-        dynamic: function(){
-          return {
-            title: 'Detail Badge', // for detail badges only
-            text: 'Dynamic ' + (Math.random() * 100).toFixed(0).toString(),
-            icon: icon, // for card front badges only
-            color: badgeColor,
-            refresh: 10
-          }
-        }
-      }]
-    }
+  if (storedCard) {
+    window.setInterval(() => storedCard.list('name').get('name').then(name => {console.log(name); storedName = name}), 1000)
+  }
 
-    if(lowercaseName.indexOf('static') > -1){
-      // return an array of badge objects
-      return [{
+  return [{
+    dynamic: function() {
+      return {
         title: 'Detail Badge', // for detail badges only
-        text: 'Static',
-        icon: icon, // for card front badges only
-        color: badgeColor
-      }];
-    } else {
-      return [];
+        text: storedName,
+        icon: GRAY_ICON, // for card front badges only
+        color: 'green',
+        refresh: 10
+      }
     }
-  })
+  }];
+  // var cardData = t.card('url', 'labels')
+  // cardData.get('labels')
+  // .then(function(labels) {
+  //   return labels
+  //     .filter(function(label) {return parentLabelRegex.test(label.name)})
+  //     .forEach(function(label) {
+  //       if (!parentCards[label.name]) {
+  //         parentCards[label.name] = {total: 0}
+  //       }
+  //       parentCards[label.name].total++
+  //     })
+  // })
+  // return cardData.get('url')
+  // .then(function(url) {
+  //   var cardNum = url.slice(url.lastIndexOf('/') + 1, url.indexOf('-'))
+  //
+  //   return [{
+  //     dynamic: function() {
+  //       return {
+  //         title: 'Detail Badge', // for detail badges only
+  //         text: parentCards[cardNum] ? '- / ' + parentCards[cardNum].total : 'N/A',
+  //         icon: GRAY_ICON, // for card front badges only
+  //         color: 'green',
+  //         refresh: 10
+  //       }
+  //     }
+  //   }];
+  // })
+
+
+  // .then(function(thing) {
+  //   cardNames.push(thing)
+  //   console.log(cardNames)
+  //   return t
+  // })
+  // .then(function(t){
+  //   return t.card('attachments')
+  //   .get('attachments')
+  //   .then(function(thing) {
+  //     if (thing.length !== 0) {
+  //       console.log('attachments', thing)
+  //     }
+  //     return t
+  //   })
+  // })
+  // .then(function(cardName){
+  //   var badgeColor;
+  //   var icon = GRAY_ICON;
+  //   var lowercaseName = cardName.toLowerCase();
+  //   if(lowercaseName.indexOf('green') > -1){
+  //     badgeColor = 'green';
+  //     icon = WHITE_ICON;
+  //   } else if(lowercaseName.indexOf('yellow') > -1){
+  //     badgeColor = 'yellow';
+  //     icon = WHITE_ICON;
+  //   } else if(lowercaseName.indexOf('red') > -1){
+  //     badgeColor = 'red';
+  //     icon = WHITE_ICON;
+  //   }
+  //
+  //   // if(lowercaseName.indexOf('dynamic') > -1){
+  //   //   // dynamic badges can have their function rerun after a set number
+  //   //   // of seconds defined by refresh. Minimum of 10 seconds.
+  //   //   return [{
+  //   //     dynamic: function(){
+  //   //       return {
+  //   //         title: 'Detail Badge', // for detail badges only
+  //   //         text: 'Dynamic ' + (Math.random() * 100).toFixed(0).toString(),
+  //   //         icon: icon, // for card front badges only
+  //   //         color: badgeColor,
+  //   //         refresh: 10
+  //   //       }
+  //   //     }
+  //   //   }]
+  //   // }
+  //
+  //   // if(lowercaseName.indexOf('static') > -1){
+  //     // return an array of badge objects
+  //     return [{
+  //       title: 'Detail Badge', // for detail badges only
+  //       text: cardNum,
+  //       icon: icon, // for card front badges only
+  //       color: badgeColor
+  //     }];
+  //   // } else {
+  //   //   return [];
+  //   // }
+  // })
 };
 
 var formatNPSUrl = function(t, url){
@@ -206,9 +281,9 @@ TrelloPowerUp.initialize({
       callback: cardButtonCallback
     }];
   },
-  'card-detail-badges': function(t, options) {
-    return getBadges(t);
-  },
+  // 'card-detail-badges': function(t, options) {
+  //   return getBadges(t);
+  // },
   'card-from-url': function(t, options) {
     var parkName = formatNPSUrl(t, options.url);
     if(parkName){
